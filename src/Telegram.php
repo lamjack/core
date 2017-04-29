@@ -154,7 +154,7 @@ class Telegram
         if (!isset($matches[1])) {
             throw new TelegramException('Invalid API KEY defined!');
         }
-        $this->bot_id  = $matches[1];
+        $this->bot_id = $matches[1];
         $this->api_key = $api_key;
 
         if (!empty($bot_username)) {
@@ -230,7 +230,7 @@ class Telegram
 
                 foreach ($files as $file) {
                     //Remove "Command.php" from filename
-                    $command      = $this->sanitizeCommand(substr($file->getFilename(), 0, -11));
+                    $command = $this->sanitizeCommand(substr($file->getFilename(), 0, -11));
                     $command_name = strtolower($command);
 
                     if (array_key_exists($command_name, $commands)) {
@@ -327,7 +327,7 @@ class Telegram
         if (!DB::isDbConnected()) {
             return new ServerResponse(
                 [
-                    'ok'          => false,
+                    'ok' => false,
                     'description' => 'getUpdates needs MySQL connection!',
                 ],
                 $this->bot_username
@@ -343,8 +343,8 @@ class Telegram
 
         $response = Request::getUpdates(
             [
-                'offset'  => $offset,
-                'limit'   => $limit,
+                'offset' => $offset,
+                'limit' => $limit,
                 'timeout' => $timeout,
             ]
         );
@@ -352,7 +352,7 @@ class Telegram
         if ($response->isOk()) {
             //Process all updates
             /** @var Update $result */
-            foreach ((array) $response->getResult() as $result) {
+            foreach ((array)$response->getResult() as $result) {
                 $this->processUpdate($result);
             }
         }
@@ -605,7 +605,7 @@ class Telegram
     /**
      * Add a single custom commands path
      *
-     * @param string $path   Custom commands path to add
+     * @param string $path Custom commands path to add
      * @param bool   $before If the path should be prepended or appended to the list
      *
      * @return \Longman\TelegramBot\Telegram
@@ -628,7 +628,7 @@ class Telegram
     /**
      * Add multiple custom commands paths
      *
-     * @param array $paths  Custom commands paths to add
+     * @param array $paths Custom commands paths to add
      * @param bool  $before If the paths should be prepended or appended to the list
      *
      * @return \Longman\TelegramBot\Telegram
@@ -761,6 +761,7 @@ class Telegram
     public function getBotName()
     {
         TelegramLog::debug('Usage of deprecated method getBotName() detected, please use getBotUsername() instead!');
+
         return $this->getBotUsername();
     }
 
@@ -890,7 +891,7 @@ class Telegram
     /**
      * Enable requests limiter
      *
-     * @param  array  $options
+     * @param  array $options
      *
      * @return \Longman\TelegramBot\Telegram
      */
@@ -923,8 +924,8 @@ class Telegram
             throw new TelegramException('Received empty/invalid getMe result!');
         }
 
-        $bot_id       = $result->getId();
-        $bot_name     = $result->getFirstName();
+        $bot_id = $result->getId();
+        $bot_name = $result->getFirstName();
         $bot_username = $result->getUsername();
 
         $this->enableAdmin($bot_id);    // Give bot access to admin commands
@@ -934,19 +935,19 @@ class Telegram
             $this->update = new Update(
                 [
                     'update_id' => 0,
-                    'message'   => [
+                    'message' => [
                         'message_id' => 0,
-                        'from'       => [
-                            'id'         => $bot_id,
+                        'from' => [
+                            'id' => $bot_id,
                             'first_name' => $bot_name,
-                            'username'   => $bot_username,
+                            'username' => $bot_username,
                         ],
-                        'date'       => time(),
-                        'chat'       => [
-                            'id'         => $bot_id,
-                            'type'       => 'private',
+                        'date' => time(),
+                        'chat' => [
+                            'id' => $bot_id,
+                            'type' => 'private',
                         ],
-                        'text'       => $command,
+                        'text' => $command,
                     ],
                 ]
             );

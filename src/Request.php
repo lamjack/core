@@ -103,14 +103,15 @@ class Request
      * Initialize
      *
      * @param \Longman\TelegramBot\Telegram $telegram
+     * @param array                         $options
      *
      * @throws \Longman\TelegramBot\Exception\TelegramException
      */
-    public static function initialize(Telegram $telegram)
+    public static function initialize(Telegram $telegram, array $options = [])
     {
         if (is_object($telegram)) {
             self::$telegram = $telegram;
-            self::$client   = new Client(['base_uri' => self::$api_base_uri]);
+            self::$client = new Client(array_merge(['base_uri' => self::$api_base_uri], $options));
         } else {
             throw new TelegramException('Telegram pointer is empty!');
         }
@@ -165,13 +166,13 @@ class Request
         //some data to let iniatilize the class method SendMessage
         if (isset($data['chat_id'])) {
             $data['message_id'] = '1234';
-            $data['date']       = '1441378360';
-            $data['from']       = [
-                'id'         => 123456789,
+            $data['date'] = '1441378360';
+            $data['from'] = [
+                'id' => 123456789,
                 'first_name' => 'botname',
-                'username'   => 'namebot',
+                'username' => 'namebot',
             ];
-            $data['chat']       = ['id' => $data['chat_id']];
+            $data['chat'] = ['id' => $data['chat_id']];
 
             $fake_response['result'] = $data;
         }
@@ -195,7 +196,7 @@ class Request
         $multipart = [];
 
         // Convert any nested arrays into JSON strings.
-        array_walk($data, function (&$item) {
+        array_walk($data, function(&$item) {
             is_array($item) && $item = json_encode($item);
         });
 
@@ -215,7 +216,7 @@ class Request
      * Execute HTTP Request
      *
      * @param string $action Action to execute
-     * @param array  $data   Data to attach to the execution
+     * @param array  $data Data to attach to the execution
      *
      * @return string Result of the HTTP Request
      * @throws \Longman\TelegramBot\Exception\TelegramException
@@ -236,14 +237,14 @@ class Request
                 '/bot' . self::$telegram->getApiKey() . '/' . $action,
                 $request_params
             );
-            $result = (string) $response->getBody();
+            $result = (string)$response->getBody();
 
             //Logging getUpdates Update
             if ($action === 'getUpdates') {
                 TelegramLog::update($result);
             }
         } catch (RequestException $e) {
-            $result = ($e->getResponse()) ? (string) $e->getResponse()->getBody() : '';
+            $result = ($e->getResponse()) ? (string)$e->getResponse()->getBody() : '';
         } finally {
             //Logging verbose debug output
             TelegramLog::endDebugLogTempStream('Verbose HTTP Request output:' . PHP_EOL . '%s' . PHP_EOL);
@@ -263,7 +264,7 @@ class Request
     public static function downloadFile(File $file)
     {
         $tg_file_path = $file->getFilePath();
-        $file_path    = self::$telegram->getDownloadPath() . '/' . $tg_file_path;
+        $file_path = self::$telegram->getDownloadPath() . '/' . $tg_file_path;
 
         $file_dir = dirname($file_path);
         //For safety reasons, first try to create the directory, then check that it exists.
@@ -282,7 +283,7 @@ class Request
 
             return filesize($file_path) > 0;
         } catch (RequestException $e) {
-            return ($e->getResponse()) ? (string) $e->getResponse()->getBody() : '';
+            return ($e->getResponse()) ? (string)$e->getResponse()->getBody() : '';
         } finally {
             //Logging verbose debug output
             TelegramLog::endDebugLogTempStream('Verbose HTTP File Download Request output:' . PHP_EOL . '%s' . PHP_EOL);
@@ -419,7 +420,7 @@ class Request
         do {
             //Chop off and send the first message
             $data['text'] = mb_substr($text, 0, 4096);
-            $response     = self::send('sendMessage', $data);
+            $response = self::send('sendMessage', $data);
 
             //Prepare the next message
             $text = mb_substr($text, 4096);
@@ -828,7 +829,7 @@ class Request
      */
     public static function setWebhook($url = '', array $data = [])
     {
-        $data        = array_intersect_key($data, array_flip([
+        $data = array_intersect_key($data, array_flip([
             'certificate',
             'max_connections',
             'allowed_updates',
@@ -960,7 +961,8 @@ class Request
         $send_users = true,
         $date_from = null,
         $date_to = null
-    ) {
+    )
+    {
         $callback_path = __NAMESPACE__ . '\Request';
         if (!method_exists($callback_path, $callback_function)) {
             throw new TelegramException('Method "' . $callback_function . '" not found in class Request.');
@@ -972,7 +974,7 @@ class Request
         if (is_array($chats)) {
             foreach ($chats as $row) {
                 $data['chat_id'] = $row['chat_id'];
-                $results[]       = call_user_func_array($callback_path . '::' . $callback_function, [$data]);
+                $results[] = call_user_func_array($callback_path . '::' . $callback_function, [$data]);
             }
         }
 
@@ -1065,7 +1067,7 @@ class Request
 
                     if ($requests['LIMIT_PER_SEC'] == 0     // No more than one message per second inside a particular chat
                         && ((($chat_id > 0 || $inline_message_id) && $requests['LIMIT_PER_SEC_ALL'] < 30)       // No more than 30 messages per second globally
-                        || ($chat_id < 0 && $requests['LIMIT_PER_MINUTE'] < 20))        // No more than 20 messages per minute in groups and channels
+                            || ($chat_id < 0 && $requests['LIMIT_PER_MINUTE'] < 20))        // No more than 20 messages per minute in groups and channels
                     ) {
                         break;
                     }
